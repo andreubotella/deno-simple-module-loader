@@ -22,6 +22,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # Apparently rustfmt and cargo-fmt are already installed in the Github
+      # runner box, and they refuse to update.
+      - name: Uninstall rustfmt
+        run: |
+          rm -f ~/.cargo/bin/rustfmt
+          rm -f ~/.cargo/bin/cargo-fmt
+
       - name: Install Rust
         uses: hecrj/setup-rust-action@v1
         with:
