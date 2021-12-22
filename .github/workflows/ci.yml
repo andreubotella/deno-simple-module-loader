@@ -36,7 +36,7 @@ jobs:
           components: clippy, rustfmt
 
       # Run only for nightly because `cargo fmt --check` is not yet available on
-      # stable.
+      # stable (https://github.com/rust-lang/rustfmt/pull/4993).
       - name: Format check
         if: matrix.rust == 'nightly'
         run: |
@@ -46,7 +46,7 @@ jobs:
       - name: Clippy
         run: |
           cargo clippy --version
-          cargo clippy --all-targets --all-features -- -D -warnings
+          cargo clippy --all-targets --all-features -- -D _warnings
 
   build:
     name: Build (${{ matrix.os }}, Rust ${{ matrix.rust }})
