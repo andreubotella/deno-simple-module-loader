@@ -24,7 +24,7 @@ jobs:
 
       # Apparently rustfmt and cargo-fmt are already installed in the Github
       # runner box, and they refuse to update.
-      - name: Uninstall rustfmt
+      - name: Delete rustfmt
         run: |
           rm -f ~/.cargo/bin/rustfmt
           rm -f ~/.cargo/bin/cargo-fmt
@@ -36,10 +36,14 @@ jobs:
           components: clippy, rustfmt
 
       - name: Format check
-        run: cargo fmt --check
+        run: |
+          cargo fmt --version
+          cargo fmt --check
 
       - name: Clippy
-        run: cargo clippy --all-targets --all-features -- -D -warnings
+        run: |
+          cargo clippy --version
+          cargo clippy --all-targets --all-features -- -D -warnings
 
   build:
     name: Build (${{ matrix.os }}, Rust ${{ matrix.rust }})
