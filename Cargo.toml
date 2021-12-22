@@ -2,6 +2,10 @@
 name = "deno-simple-module-loader"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/andreubotella/deno-simple-module-loader"
+description = "A simple implementation of deno_core's ModuleLoader trait which supports loading modules from the network."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
