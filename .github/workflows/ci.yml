@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint (Rust ${{ matrix.rust }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        rust: [stable, nightly]
+
+    env:
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Apparently rustfmt and cargo-fmt are already installed in the Github
+      # runner box, and they refuse to update.
+      - name: Delete rustfmt
+        run: |
+          rm -f ~/.cargo/bin/rustfmt
+          rm -f ~/.cargo/bin/cargo-fmt
+
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+          components: clippy, rustfmt
+
+      # Run only for nightly because `cargo fmt --check` is not yet available on
+      # stable (https://github.com/rust-lang/rustfmt/pull/4993).
+      - name: Format check
+        if: matrix.rust == 'nightly'
+        run: |
+          cargo fmt --version
+          cargo fmt --check
+
+      - name: Clippy
+        run: |
+          cargo clippy --version
+          cargo clippy --all-targets --all-features -- -D warnings
+
+  build:
+    name: Build (${{ matrix.os }}, Rust ${{ matrix.rust }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable, nightly]
+
+    env:
+      CARGO_TERM_COLOR: always
+      RUST_BACKTRACE: full
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+
+      - name: Build
+        run: cargo build
+
+      - name: Test
+        run: cargo test
