@@ -22,12 +22,12 @@ easily copied.
 This crate provides a simple implementation of `ModuleLoader` that does load
 modules from the network, built on top of `reqwest`.
 
-Things it aims to support (doesn't yet, because there is still no code at all):
+Things it supports or aims to support:
 
 - HTTP(S) imports
 - Local filesystem imports
-- Data URLs
-- JSON modules (i.e. import assertions will just work)
+- Data URLs (pending)
+- JSON modules (i.e. import assertions will just work) (pending)
 
 Things it doesn't plan to support (but hey, file an issue if it bugs you):
 
