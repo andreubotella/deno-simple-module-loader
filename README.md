@@ -40,4 +40,8 @@ Things it doesn't plan to support (but hey, file an issue if it bugs you):
   demand, I might reconsider.)
 - Running with a futures executor other than `tokio`.
 
+`deno-simple-module-loader` doesn't work with versions of `deno_core` lower than
+0.111.0 (corresponding to Deno 1.17.0), since that version slightly changed the
+`ModuleSource` API to support JSON modules.
+
 This is a work in progress. No guarantees, yadda yadda.
