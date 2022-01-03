@@ -1,5 +1,6 @@
 use std::pin::Pin;
 
+use data_url::DataUrl;
 use deno_core::anyhow::{bail, Error};
 use deno_core::futures::FutureExt;
 use deno_core::resolve_import;
@@ -47,7 +48,17 @@ impl ModuleLoader for SimpleModuleLoader {
                     let bytes = tokio::fs::read(path).await?;
                     bytes.into()
                 }
-                "data" => bail!("data URLs are not yet implemented"),
+                "data" => {
+                    let url = match DataUrl::process(module_specifier.as_str()) {
+                        Ok(url) => url,
+                        Err(_) => bail!("Not a valid data URL."),
+                    };
+                    let bytes = match url.decode_to_vec() {
+                        Ok((bytes, _)) => bytes,
+                        Err(_) => bail!("Not a valid data URL."),
+                    };
+                    bytes.into()
+                }
                 schema => bail!("Invalid schema {}", schema),
             };
 

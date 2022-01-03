@@ -13,6 +13,7 @@ description = "A simple implementation of deno_core's ModuleLoader trait which s
 deno_core = "0.112.0"
 reqwest = "0.11.8"
 tokio = { version = "1.15.0", features = ["fs"] }
+data-url = "0.1.1"
 
 [dev-dependencies]
 tokio = { version = "1.15.0", features = ["rt", "macros"] }
