@@ -111,7 +111,7 @@ async fn basic_test() -> Result<(), Error> {
     assert_eq!(
         get_output(&mut runtime)?,
         format!(
-            "test1.js http://localhost:8888/test1.js\nbasic_main.js {}\n",
+            "test1.js http://localhost:8888/test1.js\nbasic_main.js {}\nData URL value: 42\n",
             url_from_test_path("basic_main.js")
         )
     );
