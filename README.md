@@ -26,7 +26,7 @@ Things it supports or aims to support:
 
 - HTTP(S) imports
 - Local filesystem imports
-- Data URLs (pending)
+- Data URLs
 - JSON modules (i.e. import assertions will just work) (pending)
 
 Things it doesn't plan to support (but hey, file an issue if it bugs you):
