@@ -31,9 +31,10 @@ Things it supports or aims to support:
 
 Things it doesn't plan to support (but hey, file an issue if it bugs you):
 
-- Any support at all for "bare" import specifiers (i.e. `"lodash"`, which aren't
-  absolute or relative URLs). This means no support for import maps, or for
-  Node.js's module resolution algorithm.
+- Any support at all for non-URL import specifiers (i.e. bare imports, like
+  `"lodash"`), URL specifiers which are not supported in browsers (like Deno's
+  `npm:` URL support), or any other mapping from the import specifier to the
+  actual fetched URL (like import maps).
 - Blob URLs
 - Any support for transpiling modules (i.e. Typescript)
 - Custom network, authentication or TLS settings. (Though if there's significant
