@@ -30,14 +30,19 @@ impl ModuleLoader for SimpleModuleLoader {
     ) -> Pin<Box<ModuleSourceFuture>> {
         let module_specifier = module_specifier.clone();
         let string_specifier = module_specifier.to_string();
+
         async {
+            let mut module_url_found = string_specifier.clone();
             let bytes = match module_specifier.scheme() {
                 "http" | "https" => {
                     let res = reqwest::get(module_specifier).await?;
                     // TODO: The HTML spec says to fail if the status is not
                     // 200-299, but `error_for_status()` fails if the status is
-                    // 400-599.
+                    // 400-599. Redirect status codes are handled by reqwest,
+                    // but there are still status codes that are not handled.
                     let res = res.error_for_status()?;
+                    // res.url() is the post-redirect URL.
+                    module_url_found = res.url().to_string();
                     res.bytes().await?.to_vec()
                 }
                 "file" => {
@@ -64,8 +69,8 @@ impl ModuleLoader for SimpleModuleLoader {
                 code: bytes.into_boxed_slice(),
                 // TODO: JSON modules and redirects.
                 module_type: ModuleType::JavaScript,
-                module_url_specified: string_specifier.clone(),
-                module_url_found: string_specifier,
+                module_url_specified: string_specifier,
+                module_url_found,
             })
         }
         .boxed_local()

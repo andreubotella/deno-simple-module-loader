@@ -33,9 +33,20 @@ async fn ensure_server_is_running() {
         std::thread::spawn(|| {
             use std::net::SocketAddr;
             use std::str::FromStr;
+            use warp::path::Tail;
+            use warp::Filter;
 
-            let server = warp::serve(warp::fs::dir(&*SERVE_PATH));
-            let serve_future = server.run(SocketAddr::from_str("127.0.0.1:8888").unwrap());
+            let static_filter = warp::fs::dir(&*SERVE_PATH);
+            let redirect_filter =
+                warp::path("redirect")
+                    .and(warp::path::tail())
+                    .map(|tail: Tail| {
+                        let redirect_uri =
+                            format!("/{}", tail.as_str()).parse::<http::Uri>().unwrap();
+                        warp::redirect::found(redirect_uri)
+                    });
+            let serve_future = warp::serve(redirect_filter.or(static_filter))
+                .run(SocketAddr::from_str("127.0.0.1:8888").unwrap());
 
             tokio::runtime::Builder::new_current_thread()
                 .enable_io()
@@ -49,6 +60,15 @@ async fn ensure_server_is_running() {
         // Give the server some time to start.
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
+}
+
+// Server test. It's conditionally compiled out (`any()` is never true).
+#[cfg(any())]
+#[tokio::test]
+async fn server_test() {
+    ensure_server_is_running().await;
+    // Keep the server running forever.
+    std::future::pending::<()>().await;
 }
 
 fn url_from_test_path<P: AsRef<Path>>(path: P) -> ModuleSpecifier {
@@ -97,16 +117,9 @@ async fn basic_test() -> Result<(), Error> {
     let module_id = runtime
         .load_main_module(&url_from_test_path("basic_main.js"), None)
         .await?;
-    let mut receiver = runtime.mod_evaluate(module_id);
-    tokio::select! {
-        maybe_result = &mut receiver => {
-            maybe_result??;
-        },
-        event_loop_result = runtime.run_event_loop(false) => {
-            event_loop_result?;
-            receiver.await??;
-        }
-    }
+    let receiver = runtime.mod_evaluate(module_id);
+    runtime.run_event_loop(false).await?;
+    receiver.await??;
 
     assert_eq!(
         get_output(&mut runtime)?,
@@ -114,6 +127,25 @@ async fn basic_test() -> Result<(), Error> {
             "test1.js http://localhost:8888/test1.js\nbasic_main.js {}\nData URL value: 42\n",
             url_from_test_path("basic_main.js")
         )
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn http_redirect_test() -> Result<(), Error> {
+    ensure_server_is_running().await;
+
+    let mut runtime = setup_runtime()?;
+    let module_id = runtime
+        .load_main_module(&url_from_test_path("http_redirect_main.js"), None)
+        .await?;
+    let receiver = runtime.mod_evaluate(module_id);
+    runtime.run_event_loop(false).await?;
+    receiver.await??;
+
+    assert_eq!(
+        get_output(&mut runtime)?,
+        "test1.js http://localhost:8888/test1.js\n"
     );
     Ok(())
 }

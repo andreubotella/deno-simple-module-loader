@@ -17,5 +17,6 @@ data-url = "0.2.0"
 
 [dev-dependencies]
 tokio = { version = "1.15.0", features = ["rt", "macros"] }
-warp = "0.3.2"
+warp = "0.3.3"
 lazy_static = "1.4.0"
+http = "0.2.8"
