@@ -7,10 +7,10 @@ use std::rc::Rc;
 use std::sync::Once;
 use std::time::Duration;
 
-use deno_core::FastString;
 use deno_core::anyhow::Error;
 use deno_core::serde_v8;
 use deno_core::v8;
+use deno_core::FastString;
 use deno_core::JsRuntime;
 use deno_core::ModuleSpecifier;
 use deno_core::RuntimeOptions;
@@ -84,7 +84,8 @@ fn setup_runtime() -> Result<JsRuntime, Error> {
     });
     runtime.execute_script(
         "<setup>",
-        FastString::StaticAscii(r#"
+        FastString::StaticAscii(
+            r#"
             (() => {
                 let output = "";
 
@@ -98,13 +99,17 @@ fn setup_runtime() -> Result<JsRuntime, Error> {
                     return output;
                 };
             })();
-        "#),
+        "#,
+        ),
     )?;
     Ok(runtime)
 }
 
 fn get_output(runtime: &mut JsRuntime) -> Result<String, Error> {
-    let value = runtime.execute_script("<output>", FastString::StaticAscii("globalThis.getOutput();"))?;
+    let value = runtime.execute_script(
+        "<output>",
+        FastString::StaticAscii("globalThis.getOutput();"),
+    )?;
     let scope = &mut runtime.handle_scope();
     let local_value = v8::Local::new(scope, value);
     Ok(serde_v8::from_v8(scope, local_value)?)
