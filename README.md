@@ -22,12 +22,12 @@ easily copied.
 This crate provides a simple implementation of `ModuleLoader` that does load
 modules from the network, built on top of `reqwest`.
 
-Things it supports or aims to support:
+Things it supports:
 
 - HTTP(S) imports
 - Local filesystem imports
 - Data URLs
-- JSON modules (i.e. import assertions will just work) (pending)
+- JSON modules (i.e. `{type: "json"}` import attributes just work)
 
 Things it doesn't plan to support (but hey, file an issue if it bugs you):
 
@@ -35,6 +35,8 @@ Things it doesn't plan to support (but hey, file an issue if it bugs you):
   `"lodash"`), URL specifiers which are not supported in browsers (like Deno's
   `npm:` URL support), or any other mapping from the import specifier to the
   actual fetched URL (like import maps).
+- Custom import attribute types (such as `{type: "my-custom-type"}`). CSS
+  imports count as a custom type for this purpose.
 - Blob URLs
 - Any support for transpiling modules (i.e. Typescript)
 - Custom network, authentication or TLS settings. (Though if there's significant

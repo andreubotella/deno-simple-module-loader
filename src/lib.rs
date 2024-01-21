@@ -27,7 +27,7 @@ impl ModuleLoader for SimpleModuleLoader {
         module_specifier: &ModuleSpecifier,
         _maybe_referrer: Option<&ModuleSpecifier>,
         _is_dyn_import: bool,
-        _requested_module_type: RequestedModuleType,
+        requested_module_type: RequestedModuleType,
     ) -> Pin<Box<ModuleSourceFuture>> {
         let module_specifier = module_specifier.clone();
 
@@ -67,18 +67,25 @@ impl ModuleLoader for SimpleModuleLoader {
                 schema => bail!("Invalid schema {}", schema),
             };
 
+            // TODO: The MIME types should probably be checked.
+            let module_type = match requested_module_type {
+                RequestedModuleType::None => ModuleType::JavaScript,
+                RequestedModuleType::Json => ModuleType::Json,
+                RequestedModuleType::Other(_) => {
+                    unreachable!("Import types other than JSON are not supported")
+                }
+            };
+
             if let Some(redirect_module_url) = redirect_module_url {
                 Ok(ModuleSource::new_with_redirect(
-                    // TODO: JSON modules.
-                    ModuleType::JavaScript,
+                    module_type,
                     ModuleSourceCode::Bytes(bytes.into_boxed_slice().into()),
                     &module_specifier,
                     &redirect_module_url,
                 ))
             } else {
                 Ok(ModuleSource::new(
-                    // TODO: JSON modules.
-                    ModuleType::JavaScript,
+                    module_type,
                     ModuleSourceCode::Bytes(bytes.into_boxed_slice().into()),
                     &module_specifier,
                 ))
