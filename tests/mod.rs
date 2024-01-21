@@ -115,43 +115,49 @@ fn get_output(runtime: &mut JsRuntime) -> Result<String, Error> {
     Ok(serde_v8::from_v8(scope, local_value)?)
 }
 
-#[tokio::test]
-async fn basic_test() -> Result<(), Error> {
-    ensure_server_is_running().await;
+macro_rules! test {
+    (name: $name:ident, path: $path:literal, expected: $expected:expr) => {
+        #[tokio::test]
+        async fn $name() -> Result<(), Error> {
+            ensure_server_is_running().await;
 
-    let mut runtime = setup_runtime()?;
-    let module_id = runtime
-        .load_main_module(&url_from_test_path("basic_main.js"), None)
-        .await?;
-    let receiver = runtime.mod_evaluate(module_id);
-    runtime.run_event_loop(Default::default()).await?;
-    receiver.await?;
+            let mut runtime = setup_runtime()?;
+            let module_id = runtime
+                .load_main_module(&url_from_test_path($path), None)
+                .await?;
+            let receiver = runtime.mod_evaluate(module_id);
+            runtime.run_event_loop(Default::default()).await?;
+            receiver.await?;
 
-    assert_eq!(
-        get_output(&mut runtime)?,
-        format!(
-            "test1.js http://localhost:8888/test1.js\nbasic_main.js {}\nData URL value: 42\n",
-            url_from_test_path("basic_main.js")
-        )
-    );
-    Ok(())
+            assert_eq!(get_output(&mut runtime)?, $expected);
+
+            Ok(())
+        }
+    };
 }
 
-#[tokio::test]
-async fn http_redirect_test() -> Result<(), Error> {
-    ensure_server_is_running().await;
+test! {
+    name: basic_test,
+    path: "basic_main.js",
+    expected: format!(
+        "test1.js http://localhost:8888/test1.js\nbasic_main.js {}\nData URL value: 42\n",
+        url_from_test_path("basic_main.js")
+    )
+}
 
-    let mut runtime = setup_runtime()?;
-    let module_id = runtime
-        .load_main_module(&url_from_test_path("http_redirect_main.js"), None)
-        .await?;
-    let receiver = runtime.mod_evaluate(module_id);
-    runtime.run_event_loop(Default::default()).await?;
-    receiver.await?;
+test! {
+    name: http_redirect_test,
+    path: "http_redirect_main.js",
+    expected: "test1.js http://localhost:8888/test1.js\n"
+}
 
-    assert_eq!(
-        get_output(&mut runtime)?,
-        "test1.js http://localhost:8888/test1.js\n"
-    );
-    Ok(())
+test! {
+    name: json_import_test,
+    path: "json_import_main.js",
+    expected: concat!(
+        r#"{"a":[42],"dsjflks":null}"#,
+        "\n",
+        r#"{"default":["a","b","c",42,null,"d"]}"#,
+        "\n"
+    )
 }
