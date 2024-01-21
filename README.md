@@ -42,8 +42,6 @@ Things it doesn't plan to support (but hey, file an issue if it bugs you):
 - Running with a futures executor other than `tokio`.
 
 `deno-simple-module-loader` doesn't work with versions of `deno_core` lower than
-0.133.0 (corresponding to Deno 1.21.2), since that version changed the
-`ModuleSource` API to make it possible to load WebAssembly modules in the future
-(https://github.com/denoland/deno/pull/14487).
+0.246.0. (The current version at the time of writing is 0.248.0).
 
 This is a work in progress. No guarantees, yadda yadda.

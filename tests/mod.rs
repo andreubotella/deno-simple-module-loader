@@ -7,6 +7,7 @@ use std::rc::Rc;
 use std::sync::Once;
 use std::time::Duration;
 
+use deno_core::FastString;
 use deno_core::anyhow::Error;
 use deno_core::serde_v8;
 use deno_core::v8;
@@ -83,7 +84,7 @@ fn setup_runtime() -> Result<JsRuntime, Error> {
     });
     runtime.execute_script(
         "<setup>",
-        r#"
+        FastString::StaticAscii(r#"
             (() => {
                 let output = "";
 
@@ -97,13 +98,13 @@ fn setup_runtime() -> Result<JsRuntime, Error> {
                     return output;
                 };
             })();
-        "#,
+        "#),
     )?;
     Ok(runtime)
 }
 
 fn get_output(runtime: &mut JsRuntime) -> Result<String, Error> {
-    let value = runtime.execute_script("<output>", "globalThis.getOutput();")?;
+    let value = runtime.execute_script("<output>", FastString::StaticAscii("globalThis.getOutput();"))?;
     let scope = &mut runtime.handle_scope();
     let local_value = v8::Local::new(scope, value);
     Ok(serde_v8::from_v8(scope, local_value)?)
@@ -118,8 +119,8 @@ async fn basic_test() -> Result<(), Error> {
         .load_main_module(&url_from_test_path("basic_main.js"), None)
         .await?;
     let receiver = runtime.mod_evaluate(module_id);
-    runtime.run_event_loop(false).await?;
-    receiver.await??;
+    runtime.run_event_loop(Default::default()).await?;
+    receiver.await?;
 
     assert_eq!(
         get_output(&mut runtime)?,
@@ -140,8 +141,8 @@ async fn http_redirect_test() -> Result<(), Error> {
         .load_main_module(&url_from_test_path("http_redirect_main.js"), None)
         .await?;
     let receiver = runtime.mod_evaluate(module_id);
-    runtime.run_event_loop(false).await?;
-    receiver.await??;
+    runtime.run_event_loop(Default::default()).await?;
+    receiver.await?;
 
     assert_eq!(
         get_output(&mut runtime)?,
